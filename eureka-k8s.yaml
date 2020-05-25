@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eureka
+  labels:
+    app: eureka-service
+    rel: 0.0.1-SNAPSHOT
+spec:
+  containers:
+  - name: eureka
+    image: arpitgoyal1982/concierge-service-eureka-srv:0.0.1-SNAPSHOT
+    ports:
+      - containerPort: 8761
+    resources:
+        
