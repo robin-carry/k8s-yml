@@ -1,0 +1,94 @@
+# This is a replication of Dan Wahil example in Pluralsight course - K8s for devs - core concepts
+## This is for learning purpose and hence replicated as it is
+kind: StorageClass #The value is fixed 
+# this is very different from previously done - read https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md
+apiVersion: storage.k8s.io/v1 
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner 
+reclaimPolicy: Retain
+volumnBindingMode: WaitForFirstCustomer
+
+---
+
+apiVersion: v1
+kind: PersistedVolume
+metadata: 
+  name: mongo-pv
+spec: 
+  capacity: 
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-storage
+  local:
+    path: /tmp/data/db
+  nodeAffinity: 
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: 
+          - docker-desktop
+
+---
+
+apiVersion: v1
+kind: PersistedVolumeClaim
+metadata: 
+  name: mongo-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 1Gi
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  selector: 
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
+
+--- 
+
+apiVersion: v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  labels:
+    app: mongo
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - image: mongo
+          name: mongo
+          ports:
+          - containerPort: 27017
+          command: 
+          - mongod
+          - "--auth"
+          resources: {}
+          volumeMounts:
+          - name: mongo-volume
+            mountPath: /data/db
+
