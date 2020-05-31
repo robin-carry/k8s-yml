@@ -26,5 +26,5 @@ spec:
       initialDelaySeconds: 3
       periodSeconds: 5
       failureThreshold: 1
-    resources:
+  resources:  
         
