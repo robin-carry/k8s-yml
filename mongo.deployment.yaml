@@ -7,12 +7,12 @@ metadata:
   name: local-storage
 provisioner: kubernetes.io/no-provisioner 
 reclaimPolicy: Retain
-volumnBindingMode: WaitForFirstCustomer
+volumeBindingMode: WaitForFirstConsumer
 
 ---
 
 apiVersion: v1
-kind: PersistedVolume
+kind: PersistentVolume
 metadata: 
   name: mongo-pv
 spec: 
@@ -36,7 +36,7 @@ spec:
 ---
 
 apiVersion: v1
-kind: PersistedVolumeClaim
+kind: PersistentVolumeClaim
 metadata: 
   name: mongo-pvc
 spec:
@@ -62,7 +62,7 @@ spec:
 
 --- 
 
-apiVersion: v1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mongo
@@ -91,4 +91,13 @@ spec:
           volumeMounts:
           - name: mongo-volume
             mountPath: /data/db
+          env: 
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: mongoadmin
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: secret
+      volumes:
+      - name: mongo-volume
+        persistentVolumeClaim:
+          claimName: mongo-pvc
 
